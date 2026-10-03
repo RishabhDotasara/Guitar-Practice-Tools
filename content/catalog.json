@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-10-03",
+  "packs": [
+    {
+      "id": "core",
+      "name": "Core Exercises",
+      "version": "1.0.0",
+      "path": "packs/core.json",
+      "license": "original",
+      "tier": "free",
+      "tags": ["beginner", "fretboard", "scales", "technique"]
+    },
+    {
+      "id": "folk",
+      "name": "Traditional Songs",
+      "version": "1.0.0",
+      "path": "packs/folk.json",
+      "license": "public-domain",
+      "tier": "paid",
+      "price": { "usd": 4.99 },
+      "tags": ["beginner", "song", "public-domain"]
+    }
+  ],
+  "bundles": [
+    {
+      "id": "pro",
+      "name": "Pro unlock (all current & future packs)",
+      "price": { "usd": 19.99 },
+      "packs": ["folk"]
+    }
+  ]
+}

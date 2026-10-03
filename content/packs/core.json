@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "id": "core",
+  "name": "Core Exercises",
+  "description": "Fundamentals: fretboard knowledge, scales, arpeggios and power chords.",
+  "author": "Tab Trainer",
+  "version": "1.0.0",
+  "license": "original",
+  "attribution": "Original exercises by Tab Trainer.",
+  "price": { "usd": 0 },
+  "entries": [
+    {
+      "id": "open-strings",
+      "title": "Open strings (low E to high e)",
+      "type": "drill",
+      "category": "fretboard",
+      "difficulty": 1,
+      "tags": ["beginner", "open-strings"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "frets": [[5,0],[4,0],[3,0],[2,0],[1,0],[0,0]]
+    },
+    {
+      "id": "chromatic-1234",
+      "title": "Chromatic 1-2-3-4 (low E to high e)",
+      "type": "drill",
+      "category": "technique",
+      "difficulty": 2,
+      "tags": ["beginner", "finger-independence"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "frets": [
+        [5,1],[5,2],[5,3],[5,4],
+        [4,1],[4,2],[4,3],[4,4],
+        [3,1],[3,2],[3,3],[3,4],
+        [2,1],[2,2],[2,3],[2,4],
+        [1,1],[1,2],[1,3],[1,4],
+        [0,1],[0,2],[0,3],[0,4]
+      ]
+    },
+    {
+      "id": "a-minor-pentatonic-1",
+      "title": "A minor pentatonic (position 1)",
+      "type": "scale",
+      "category": "scale",
+      "difficulty": 2,
+      "tags": ["pentatonic", "position-1"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "frets": [[5,5],[5,8],[4,5],[4,7],[3,5],[3,7],[2,5],[2,7],[1,5],[1,8],[0,5],[0,8]]
+    },
+    {
+      "id": "e-minor-pentatonic-open",
+      "title": "E minor pentatonic (open position)",
+      "type": "scale",
+      "category": "scale",
+      "difficulty": 1,
+      "tags": ["pentatonic", "open-position"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "frets": [[5,0],[5,3],[4,0],[4,2],[3,0],[3,2],[2,0],[2,2],[1,0],[1,3],[0,0],[0,3]]
+    },
+    {
+      "id": "g-major-open",
+      "title": "G major scale (open position)",
+      "type": "scale",
+      "category": "scale",
+      "difficulty": 2,
+      "tags": ["major-scale", "open-position"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "frets": [[5,3],[5,5],[4,2],[4,3],[4,5],[3,2],[3,4],[3,5],[2,4],[2,5],[1,3],[1,5],[0,2],[0,3]]
+    },
+    {
+      "id": "c-major-open",
+      "title": "C major scale (open position)",
+      "type": "scale",
+      "category": "scale",
+      "difficulty": 2,
+      "tags": ["major-scale", "open-position"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "frets": [[4,3],[4,5],[3,2],[3,3],[3,5],[2,2],[2,4],[2,5],[1,5],[0,3],[0,5],[0,7],[0,8]]
+    },
+    {
+      "id": "open-chords-arpeggio",
+      "title": "Open chords C-G-Am-Em (arpeggio)",
+      "type": "chord",
+      "category": "chord",
+      "difficulty": 2,
+      "tags": ["open-chords", "arpeggio"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "frets": [
+        [4,3],[3,2],[2,0],[1,1],[0,0],
+        [5,3],[4,2],[3,0],[2,0],[1,0],[0,3],
+        [4,0],[3,2],[2,2],[1,1],[0,0],
+        [5,0],[4,2],[3,2],[2,0],[1,0],[0,0]
+      ]
+    },
+    {
+      "id": "power-chord-roots",
+      "title": "Power chord roots (low E & A)",
+      "type": "riff",
+      "category": "chord",
+      "difficulty": 2,
+      "tags": ["power-chords", "roots"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "frets": [[5,0],[5,1],[5,3],[4,0],[4,2],[4,3],[3,0]]
+    },
+    {
+      "id": "original-e-minor-riff",
+      "title": "Original E minor riff",
+      "type": "riff",
+      "category": "riff",
+      "difficulty": 3,
+      "tags": ["original", "pentatonic"],
+      "tuning": "standard",
+      "mode": "sequence",
+      "license": "original",
+      "frets": [[5,0],[5,3],[4,0],[4,2],[3,0],[3,2],[3,0],[4,2],[4,0],[5,3],[5,0]]
+    }
+  ]
+}

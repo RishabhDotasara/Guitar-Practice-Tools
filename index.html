@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Tab Trainer — Learn to Read Guitar Tabs</title>
+<style>
+  /* ============================================================
+     THEME
+     Light values live on :root; dark values are applied when the OS
+     prefers dark (auto) OR when <html data-theme="dark"> is set.
+     A manual choice overrides the OS via the theme selector.
+     ============================================================ */
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --panel-2: #f0f2f5;
+    --text: #15171c;
+    --muted: #6b7280;
+    --line: #d5d9e0;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --green: #1a8f47;
+    --green-soft: #d9f4e2;
+    --red: #d22d2d;
+    --red-soft: #fde0e0;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.05);
+  }
+  /* Auto dark — but never when the user explicitly chose light. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0e1014;
+      --panel: #171a21;
+      --panel-2: #1d212a;
+      --text: #e9ebef;
+      --muted: #98a0ac;
+      --line: #2b313c;
+      --accent: #6aa4ff;
+      --accent-soft: #1b2b45;
+      --green: #5bdd8b;
+      --green-soft: #12321f;
+      --red: #ff7b7b;
+      --red-soft: #3a1919;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  /* Explicit dark (overrides a light OS). */
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1014;
+    --panel: #171a21;
+    --panel-2: #1d212a;
+    --text: #e9ebef;
+    --muted: #98a0ac;
+    --line: #2b313c;
+    --accent: #6aa4ff;
+    --accent-soft: #1b2b45;
+    --green: #5bdd8b;
+    --green-soft: #12321f;
+    --red: #ff7b7b;
+    --red-soft: #3a1919;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"] { color-scheme: light; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    -webkit-text-size-adjust: 100%;
+    padding: 14px;
+    padding-bottom: 40px;
+  }
+  .app { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+
+  header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  header h1 { font-size: 1.5rem; margin: 0; letter-spacing: -.02em; }
+  header .tag { color: var(--muted); font-size: .82rem; }
+  .theme-select { margin-left: auto; width: auto; padding: 7px 10px; font-size: .85rem; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px;
+  }
+
+  label.field { display: flex; flex-direction: column; gap: 5px; font-size: .78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  select { font: inherit; color: inherit; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; width: 100%; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+  .row > .field { flex: 1 1 160px; }
+
+  button {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px 15px;
+    font: inherit; color: inherit; font-weight: 600;
+    cursor: pointer;
+    transition: transform .05s ease, background .15s ease, border-color .15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:hover { border-color: var(--accent); }
+  button:active { transform: translateY(1px); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { filter: brightness(1.05); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* ---------------- Stage (six strings + current/next note) ---------------- */
+  .stage { display: block; width: 100%; height: auto; margin: 2px 0 4px; }
+  .stage .str-line { stroke: var(--line); stroke-linecap: round; }
+  .stage .str-label { fill: var(--muted); font: 700 20px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .stage .c { transition: fill .08s linear; }
+  #curGroup .c { fill: var(--accent); }
+  #curGroup.flash .c { fill: var(--green); }
+  #curGroup .t { fill: #fff; font: 800 26px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  #nextGroup .c { fill: none; stroke: var(--muted); stroke-width: 3; opacity: .45; }
+  #nextGroup .t { fill: var(--muted); opacity: .7; font: 700 22px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .hidden { display: none; }
+
+  .hint { text-align: center; font-size: 1.35rem; font-weight: 700; letter-spacing: -.01em; margin: 2px 0 10px; min-height: 1.6em; }
+
+  /* needle meter */
+  .meter { margin-top: 6px; }
+  .meter-track {
+    position: relative; height: 26px; border-radius: 8px;
+    background: linear-gradient(to right,
+      color-mix(in srgb, var(--red) 22%, transparent) 0%,
+      var(--panel-2) 22%, var(--panel-2) 78%,
+      color-mix(in srgb, var(--red) 22%, transparent) 100%);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .meter-center { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--green); opacity: .75; transform: translateX(-50%); }
+  .meter-tol { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--green) 18%, transparent); left: 50%; width: 0; }
+  .meter-needle { position: absolute; top: -3px; bottom: -3px; width: 4px; border-radius: 2px; background: var(--text); transform: translateX(-50%); transition: left .05s linear; }
+  .meter-needle.in { background: var(--green); }
+  .meter-scale { display: flex; justify-content: space-between; font-size: .7rem; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .cents { text-align: center; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .cents.in { color: var(--green); }
+  .names { text-align: center; color: var(--muted); font-size: .92rem; margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+  .progress { display: flex; justify-content: space-between; align-items: center; font-size: .85rem; color: var(--muted); margin-bottom: 8px; }
+  .bar { height: 8px; background: var(--panel-2); border-radius: 99px; overflow: hidden; margin-bottom: 6px; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--green); border-radius: 99px; transition: width .2s ease; }
+
+  .status { display: flex; align-items: center; gap: 8px; font-size: .88rem; font-weight: 600; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex: 0 0 auto; }
+  .dot.live { background: var(--green); box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 20%, transparent); animation: blink 1.6s ease-in-out infinite; }
+  .dot.err { background: var(--red); }
+  @keyframes blink { 50% { opacity: .35; } }
+
+  .error { display: none; margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--red-soft); color: var(--red); font-size: .88rem; font-weight: 600; }
+  .error.show { display: block; }
+
+  .switch { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: .9rem; cursor: pointer; }
+  .switch input { width: 18px; height: 18px; accent-color: var(--accent); }
+  .counter { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .counter b { font-size: 1.05rem; }
+
+  /* completion overlay */
+  .overlay { position: fixed; inset: 0; background: color-mix(in srgb, var(--bg) 78%, transparent); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 20; }
+  .overlay.show { display: flex; }
+  .overlay .box { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 26px; max-width: 380px; width: 100%; text-align: center; }
+  .overlay h2 { margin: 0 0 6px; font-size: 1.6rem; color: var(--green); }
+  .overlay p { color: var(--muted); margin: 0 0 18px; }
+  .overlay .btns { justify-content: center; }
+
+  /* custom tab card */
+  details.card { padding: 14px; }
+  summary { cursor: pointer; font-weight: 700; font-size: .95rem; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  details[open] summary { margin-bottom: 12px; }
+  .custom-body { display: flex; flex-direction: column; gap: 10px; }
+  input[type="file"] { font: inherit; color: var(--muted); width: 100%; }
+  input[type="file"]::file-selector-button {
+    font: inherit; font-weight: 600; color: var(--text);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 12px; margin-right: 10px; cursor: pointer;
+  }
+  textarea {
+    width: 100%; min-height: 120px; resize: vertical;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px; color: inherit;
+    font: .9rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre; overflow: auto;
+  }
+  .hint.small { text-align: left; font-size: .78rem; font-weight: 500; color: var(--muted); min-height: 0; margin: 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Tab Trainer</h1>
+    <span class="tag">Read tabs · play along · get it right</span>
+    <select id="themeSelect" class="theme-select" aria-label="Theme">
+      <option value="auto" selected>Auto theme</option>
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+    </select>
+  </header>
+
+  <!-- Exercise / settings -->
+  <div class="card">
+    <div class="row">
+      <label class="field" style="flex:1 1 100%">Exercise
+        <select id="modeSelect"></select>
+      </label>
+      <label class="field" id="fretField">Fret range
+        <select id="fretSelect">
+          <option value="0-3">0 – 3</option>
+          <option value="0-5" selected>0 – 5</option>
+          <option value="0-7">0 – 7</option>
+          <option value="0-12">0 – 12</option>
+        </select>
+      </label>
+      <label class="field" id="stringsField">Strings
+        <select id="stringsSelect">
+          <option value="all" selected>All strings</option>
+          <option value="low">Low 3 strings</option>
+          <option value="high">High 3 strings</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <!-- Stage -->
+  <div class="card">
+    <div class="progress">
+      <span id="progressText">Endless</span>
+      <span id="modeName"></span>
+    </div>
+    <div class="bar" id="barWrap"><i id="progressBar"></i></div>
+
+    <svg id="stage" class="stage" viewBox="0 0 680 300" role="img" aria-label="Guitar strings stage">
+      <g id="strings"></g>
+      <g id="curGroup" class="hidden">
+        <circle class="c" r="32"></circle>
+        <text class="t" text-anchor="middle" dominant-baseline="central"></text>
+      </g>
+      <g id="nextGroup" class="hidden">
+        <circle class="c" r="26"></circle>
+        <text class="t" text-anchor="middle" dominant-baseline="central"></text>
+      </g>
+    </svg>
+
+    <div class="hint" id="hint">Press “Start mic”, then play the note.</div>
+
+    <!-- Feedback -->
+    <div class="meter">
+      <div class="meter-track">
+        <div class="meter-tol" id="meterTol"></div>
+        <div class="meter-center"></div>
+        <div class="meter-needle" id="needle" style="left:50%"></div>
+      </div>
+      <div class="meter-scale"><span>-50¢</span><span>0</span><span>+50¢</span></div>
+    </div>
+    <div class="cents" id="centsLabel">0¢</div>
+    <div class="names hidden" id="namesLine"></div>
+
+    <div class="status" style="margin-top:12px">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Microphone off — press “Start mic”. You can also use “Skip note” to preview.</span>
+    </div>
+    <div class="error" id="errorBox"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="card">
+    <div class="btns">
+      <button class="primary" id="startBtn">Start mic</button>
+      <button id="skipBtn">Skip note</button>
+      <button id="restartBtn">Restart</button>
+    </div>
+    <div style="margin-top:12px; display:flex; gap:16px; flex-wrap:wrap; align-items:center; justify-content:space-between">
+      <label class="switch"><input type="checkbox" id="namesChk" /> Show note names</label>
+      <span class="counter">Notes played: <b id="notesPlayed">0</b></span>
+    </div>
+  </div>
+
+  <!-- Custom song tabs -->
+  <details class="card" id="customCard">
+    <summary>Custom song tabs — upload a file or paste</summary>
+    <div class="custom-body">
+      <label class="field">Load a file (.txt, .tab, or .json)
+        <input type="file" id="fileInput" accept=".txt,.tab,.text,.json,text/plain,application/json" />
+      </label>
+      <label class="field">…or paste below
+        <textarea id="customInput" spellcheck="false" placeholder="e|--0--3--5--3--0--|&#10;B|-----------------|&#10;G|-----------------|&#10;D|-----------------|&#10;A|-----------------|&#10;E|--3--5--6--------|"></textarea>
+      </label>
+      <div class="btns">
+        <button class="primary" id="loadCustomBtn">Load custom tab</button>
+        <button id="exampleBtn">Insert example</button>
+      </div>
+      <p class="hint small">
+        <b>ASCII tab (most common):</b> six lines, high e on top, numbers are frets (multi-digit like 12 works).
+        Other characters (h, p, /, \, x, ~, b) are ignored.<br>
+        <b>JSON:</b> <code>{"name":"My song","notes":[[5,0],[5,3],[0,5]]}</code> — each pair is [string, fret], where string 0 = high e … 5 = low E.
+      </p>
+      <div class="error" id="customError"></div>
+    </div>
+  </details>
+</div>
+
+<!-- Completion overlay (pattern exercises only) -->
+<div class="overlay" id="overlay">
+  <div class="box">
+    <h2>Exercise complete!</h2>
+    <p id="overlayMsg"></p>
+    <div class="btns">
+      <button class="primary" id="againBtn">Play again</button>
+      <button id="closeBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ================================================================
+   TUNABLE CONSTANTS — adjust these if detection is too strict/loose
+   ----------------------------------------------------------------
+   TOL_CENTS          how far off pitch may be to count as correct
+   HOLD_FRAMES        consecutive valid frames before a match registers
+   CLARITY            minimum NSDF peak to accept a pitch (0..1)
+   SILENCE            RMS gate — ignore frames quieter than this
+   REARM_*            re-trigger rules after a match
+   ================================================================ */
+const TOL_CENTS          = 40;    // ± cents counts as the right note
+const HOLD_FRAMES        = 5;     // ~5 consecutive frames ≈ 80 ms
+const CLARITY            = 0.85;  // NSDF peak must exceed this
+const SILENCE            = 0.01;  // RMS below this is treated as silence
+
+const MIN_FREQ           = 70;    // Hz  (lowest pitch to search)
+const MAX_FREQ           = 700;   // Hz  (highest pitch to search)
+const WINDOW             = 2048;  // samples used for the autocorrelation
+
+// Re-arming (prevents a sustained note from skipping repeated notes)
+const REARM_CENTS        = 60;    // detected pitch this far from last match ⇒ re-arm
+const REARM_PLUCK_RATIO  = 1.6;   // fresh pluck: RMS > ratio × min RMS since match
+const REARM_MIN_MS       = 200;   // minimum time after a match before a pluck re-arms
+const REARM_SILENCE_MS   = 150;   // silence longer than this re-arms
+const FLASH_MS           = 120;   // green flash duration before advancing
+
+/* ---------------- Standard tuning (display order, top → bottom) ---------------- */
+const STRINGS = [
+  { name: "e", freq: 329.63 }, // high e
+  { name: "B", freq: 246.94 },
+  { name: "G", freq: 196.00 },
+  { name: "D", freq: 146.83 },
+  { name: "A", freq: 110.00 },
+  { name: "E", freq:  82.41 }, // low E
+];
+const STRING_FULL = ["high e", "B", "G", "D", "A", "low E"];
+
+/* ---------------- Exercise patterns [stringIndex, fret] ---------------- */
+const PATTERNS = {
+  open: [
+    [5,0], [4,0], [3,0], [2,0], [1,0], [0,0],
+  ],
+  // Chromatic 1-2-3-4 on every string, low E up to high e
+  chromatic: (() => {
+    const a = [];
+    for (let s = 5; s >= 0; s--) for (let f = 1; f <= 4; f++) a.push([s, f]);
+    return a;
+  })(),
+  pentatonic: [
+    [5,5], [5,8], [4,5], [4,7], [3,5], [3,7],
+    [2,5], [2,7], [1,5], [1,8], [0,5], [0,8],
+  ],
+  emPentatonic: [
+    [5,0], [5,3], [4,0], [4,2], [3,0], [3,2],
+    [2,0], [2,2], [1,0], [1,3], [0,0], [0,3],
+  ],
+  gMajor: [
+    [5,3], [5,5], [4,2], [4,3], [4,5], [3,2], [3,4],
+    [3,5], [2,4], [2,5], [1,3], [1,5], [0,2], [0,3],
+  ],
+  cMajor: [
+    [4,3], [4,5], [3,2], [3,3], [3,5], [2,2], [2,4],
+    [2,5], [1,5], [0,3], [0,5], [0,7], [0,8],
+  ],
+  arpeggios: [
+    // C
+    [4,3], [3,2], [2,0], [1,1], [0,0],
+    // G
+    [5,3], [4,2], [3,0], [2,0], [1,0], [0,3],
+    // Am
+    [4,0], [3,2], [2,2], [1,1], [0,0],
+    // Em
+    [5,0], [4,2], [3,2], [2,0], [1,0], [0,0],
+  ],
+  power: [
+    [5,0], [5,1], [5,3], [4,0], [4,2], [4,3], [3,0],
+  ],
+  seven: [
+    [4,7], [4,7], [4,10], [4,7], [4,5], [4,3], [4,2],
+  ],
+  twinkle: [
+    [1,1], [1,1], [0,3], [0,3], [0,5], [0,5], [0,3],
+    [0,1], [0,1], [0,0], [0,0], [1,3], [1,3], [1,1],
+  ],
+  mary: [
+    [0,0], [1,3], [1,1], [1,3], [0,0], [0,0], [0,0],
+    [1,3], [1,3], [1,3], [0,0], [0,3], [0,3],
+  ],
+  ode: [
+    [0,0], [0,0], [0,1], [0,3], [0,3], [0,1], [0,0],
+    [1,3], [1,1], [1,1], [1,3], [0,0], [0,0], [1,3], [1,3],
+  ],
+};
+
+const MODES = {
+  random:       "Random notes (endless)",
+  open:         "Open strings (low E → high e)",
+  chromatic:    "Chromatic 1-2-3-4 (low E → high e)",
+  pentatonic:   "A minor pentatonic (position 1)",
+  emPentatonic: "E minor pentatonic (open position)",
+  gMajor:       "G major scale (open position)",
+  cMajor:       "C major scale (open position)",
+  arpeggios:    "Open chords C–G–Am–Em (arpeggio)",
+  power:        "Power chord roots (low E & A)",
+  seven:        "Seven Nation Army riff",
+  twinkle:      "Twinkle Twinkle Little Star",
+  mary:         "Mary Had a Little Lamb",
+  ode:          "Ode to Joy (top two strings)",
+};
+
+/* ================================================================
+   STATE
+   ================================================================ */
+const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const SVGNS = "http://www.w3.org/2000/svg";
+
+let mode = "random";
+let fretMin = 0, fretMax = 5;
+let stringOpt = "all";
+
+let current = null;   // { s, f }
+let next = null;      // { s, f } preview
+let pattern = null;   // finite pattern as [{s,f}, ...]
+let patternIndex = 0;
+let notesPlayed = 0;
+let finished = false;
+let transitioning = false; // true during the green flash
+let customNotes = null;    // parsed custom tab as [{s,f}, ...]
+let customName = "Custom tab";
+
+// matching state (kept from the original logic)
+let armed = true;
+let holdCount = 0;
+let lastMatchFreq = 0;
+let lastMatchTime = 0;
+let minRmsSinceMatch = Infinity;
+let silenceStart = 0;
+
+// audio
+let audioCtx = null;
+let analyser = null;
+let buf = null;
+let running = false;
+let sampleRate = 44100;
+let rafId = null;
+let nsdfBuf = null;
+
+// DOM
+const $ = (id) => document.getElementById(id);
+const stage       = $("stage");
+const stringsG    = $("strings");
+const curGroup    = $("curGroup");
+const nextGroup   = $("nextGroup");
+const modeSel     = $("modeSelect");
+const fretSel     = $("fretSelect");
+const stringsSel  = $("stringsSelect");
+const fretField   = $("fretField");
+const stringsField= $("stringsField");
+const hintEl      = $("hint");
+const needle      = $("needle");
+const meterTol    = $("meterTol");
+const centsLabel  = $("centsLabel");
+const namesLine   = $("namesLine");
+const namesChk    = $("namesChk");
+const statusDot   = $("statusDot");
+const statusText  = $("statusText");
+const errorBox    = $("errorBox");
+const progressText= $("progressText");
+const modeNameEl  = $("modeName");
+const progressBar = $("progressBar");
+const barWrap     = $("barWrap");
+const notesPlayedEl = $("notesPlayed");
+const overlay     = $("overlay");
+const overlayMsg  = $("overlayMsg");
+const themeSel    = $("themeSelect");
+const fileInput   = $("fileInput");
+const customInput = $("customInput");
+const customError = $("customError");
+const customCard  = $("customCard");
+
+/* ================================================================
+   HELPERS
+   ================================================================ */
+function freqForNote(stringIndex, fret) {
+  return STRINGS[stringIndex].freq * Math.pow(2, fret / 12);
+}
+function centsBetween(f, ref) {
+  if (f <= 0 || ref <= 0) return 0;
+  return 1200 * Math.log2(f / ref);
+}
+function freqToNoteInfo(f) {
+  const midi = 69 + 12 * Math.log2(f / 440);
+  const rounded = Math.round(midi);
+  const cents = Math.round((midi - rounded) * 100);
+  const name = NOTE_NAMES[((rounded % 12) + 12) % 12] + (Math.floor(rounded / 12) - 1);
+  return { name, cents, midi: rounded };
+}
+function ordinal(n) {
+  const s = ["th", "st", "nd", "rd"], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+function currentFreq() {
+  return current ? freqForNote(current.s, current.f) : 0;
+}
+function noteKey(n) { return n ? n.s + ":" + n.f : ""; }
+function setStatus(text, kind) {
+  statusText.textContent = text;
+  statusDot.className = "dot" + (kind ? " " + kind : "");
+}
+function showError(msg) { errorBox.textContent = msg; errorBox.classList.add("show"); }
+function clearError() { errorBox.textContent = ""; errorBox.classList.remove("show"); }
+
+/* ================================================================
+   PITCH DETECTION — normalized autocorrelation (NSDF / McLeod-style)
+   ----------------------------------------------------------------
+   Returns { rms, freq, clarity }. freq = -1 when no confident pitch.
+   ================================================================ */
+function detectPitch(samples, sr) {
+  const size = Math.min(WINDOW, samples.length);
+  const maxLag = Math.min(Math.floor(sr / MIN_FREQ), samples.length - size - 1);
+  const minLag = Math.max(2, Math.floor(sr / MAX_FREQ));
+
+  // --- RMS (silence gate) ---
+  let rms = 0;
+  for (let i = 0; i < size; i++) rms += samples[i] * samples[i];
+  rms = Math.sqrt(rms / size);
+
+  if (rms < SILENCE) return { rms, freq: -1, clarity: 0 };
+
+  // --- NSDF: nsdf[lag] = 2·Σ x[i]·x[i+lag] / Σ (x[i]² + x[i+lag]²) ---
+  // Compute from lag 1 so the first dip below zero is found before the
+  // fundamental lobe (important for high notes). Peak picking below is
+  // still restricted to the minLag..maxLag frequency range.
+  if (!nsdfBuf || nsdfBuf.length < maxLag + 1) nsdfBuf = new Float32Array(maxLag + 2);
+  for (let lag = 1; lag <= maxLag; lag++) {
+    let acf = 0, norm = 0;
+    for (let i = 0; i < size; i++) {
+      const x = samples[i];
+      const y = samples[i + lag];
+      acf += x * y;
+      norm += x * x + y * y;
+    }
+    nsdfBuf[lag] = norm > 0 ? (2 * acf) / norm : 0;
+  }
+
+  // --- Find the first dip below zero, then all positive-lobe peaks after it ---
+  let firstDip = -1;
+  for (let lag = 1; lag <= maxLag; lag++) {
+    if (nsdfBuf[lag] < 0) { firstDip = lag; break; }
+  }
+  if (firstDip < 0) return { rms, freq: -1, clarity: 0 };
+
+  const peaks = []; // { lag, val }
+  const startLag = Math.max(firstDip + 1, minLag);
+  for (let lag = startLag; lag < maxLag; lag++) {
+    const v = nsdfBuf[lag];
+    if (v > nsdfBuf[lag - 1] && v >= nsdfBuf[lag + 1] && v > 0) {
+      peaks.push({ lag, val: v });
+    }
+  }
+  if (!peaks.length) return { rms, freq: -1, clarity: 0 };
+
+  // --- Choose the first peak that is ≥ 0.9 × the highest peak (avoids octave errors) ---
+  let highest = 0;
+  for (const p of peaks) if (p.val > highest) highest = p.val;
+  let chosen = peaks[0];
+  for (const p of peaks) {
+    if (p.val >= 0.9 * highest) { chosen = p; break; }
+  }
+
+  // --- Parabolic interpolation around the chosen peak ---
+  const lag = chosen.lag;
+  const y0 = nsdfBuf[lag - 1];
+  const y1 = nsdfBuf[lag];
+  const y2 = nsdfBuf[lag + 1];
+  const denom = y0 - 2 * y1 + y2;
+  let refinedLag = lag;
+  if (Math.abs(denom) > 1e-9) refinedLag = lag + 0.5 * (y0 - y2) / denom;
+  if (refinedLag <= 0) refinedLag = lag;
+
+  const clarity = y1 - 0.25 * (y0 - y2) * (refinedLag - lag);
+
+  return { rms, freq: sr / refinedLag, clarity };
+}
+
+/* ================================================================
+   STAGE RENDERING
+   ================================================================ */
+function yPos(s) { return 50 + s * 40; }
+
+function buildStrings() {
+  stringsG.innerHTML = "";
+  STRINGS.forEach((st, i) => {
+    const y = yPos(i);
+    const line = document.createElementNS(SVGNS, "line");
+    line.setAttribute("x1", 56);
+    line.setAttribute("x2", 660);
+    line.setAttribute("y1", y);
+    line.setAttribute("y2", y);
+    line.setAttribute("class", "str-line");
+    line.setAttribute("stroke-width", (1 + i * 0.7).toFixed(1));
+    stringsG.appendChild(line);
+
+    const label = document.createElementNS(SVGNS, "text");
+    label.setAttribute("x", 30);
+    label.setAttribute("y", y);
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("dominant-baseline", "central");
+    label.setAttribute("class", "str-label");
+    label.textContent = st.name;
+    stringsG.appendChild(label);
+  });
+}
+
+function setGroup(group, note, x, isCurrent) {
+  if (!note) { group.classList.add("hidden"); return; }
+  group.classList.remove("hidden");
+  const circle = group.querySelector(".c");
+  const text = group.querySelector(".t");
+  const y = yPos(note.s);
+  circle.setAttribute("cx", x);
+  circle.setAttribute("cy", y);
+  text.setAttribute("x", x);
+  text.setAttribute("y", y);
+  text.textContent = String(note.f);
+}
+
+function renderStage() {
+  setGroup(curGroup, current, 205, true);
+  setGroup(nextGroup, next, 525, false);
+  updateHint();
+}
+
+function updateHint() {
+  if (!current) {
+    hintEl.textContent = finished ? "Exercise complete!" : "—";
+    return;
+  }
+  if (current.f === 0) {
+    hintEl.textContent = "Open " + STRING_FULL[current.s] + " string";
+  } else {
+    hintEl.textContent = ordinal(current.f) + " fret, " + STRING_FULL[current.s] + " string";
+  }
+}
+
+function updateProgress() {
+  modeNameEl.textContent = modeLabel();
+  if (mode === "random") {
+    progressText.textContent = "Endless — " + notesPlayed + " played";
+    barWrap.classList.add("hidden");
+  } else {
+    barWrap.classList.remove("hidden");
+    const total = pattern ? pattern.length : 0;
+    const done = Math.min(patternIndex, total);
+    if (finished) {
+      progressText.textContent = "Complete! " + total + " / " + total;
+    } else {
+      progressText.textContent = "Note " + Math.min(patternIndex + 1, total) + " / " + total;
+    }
+    progressBar.style.width = (total ? (done / total) * 100 : 0) + "%";
+  }
+}
+
+function updateCounter() { notesPlayedEl.textContent = String(notesPlayed); }
+
+/* ================================================================
+   EXERCISE LOGIC
+   ================================================================ */
+function allowedStrings() {
+  if (stringOpt === "low") return [5, 4, 3];
+  if (stringOpt === "high") return [2, 1, 0];
+  return [0, 1, 2, 3, 4, 5];
+}
+
+function randomNote(prev) {
+  const set = allowedStrings();
+  let s, f, guard = 0;
+  do {
+    s = set[Math.floor(Math.random() * set.length)];
+    f = fretMin + Math.floor(Math.random() * (fretMax - fretMin + 1));
+    guard++;
+  } while (prev && s === prev.s && f === prev.f && guard < 100);
+  return { s, f };
+}
+
+function resetMatchState() {
+  armed = true;
+  holdCount = 0;
+  lastMatchFreq = 0;
+  lastMatchTime = 0;
+  minRmsSinceMatch = Infinity;
+  silenceStart = 0;
+}
+
+function modeLabel() {
+  return mode === "custom" ? "Custom: " + customName : (MODES[mode] || "");
+}
+
+function startExercise() {
+  overlay.classList.remove("show");
+  curGroup.classList.remove("flash");
+  finished = false;
+  transitioning = false;
+  patternIndex = 0;
+  notesPlayed = 0;
+  updateCounter();
+
+  if (mode === "random") {
+    pattern = null;
+    current = randomNote(null);
+    next = randomNote(current);
+  } else {
+    const src = (mode === "custom") ? (customNotes || []) : PATTERNS[mode];
+    pattern = src.map(([s, f]) => ({ s, f }));
+    current = pattern[0] || null;
+    next = pattern[1] || null;
+  }
+  resetMatchState();
+  renderStage();
+  updateProgress();
+}
+
+function advanceTarget() {
+  if (mode === "random") {
+    current = next;
+    next = randomNote(current);
+  } else {
+    patternIndex++;
+    if (patternIndex >= pattern.length) { finishExercise(); return; }
+    current = pattern[patternIndex];
+    next = pattern[patternIndex + 1] || null;
+  }
+  renderStage();
+  updateProgress();
+}
+
+function finishExercise() {
+  finished = true;
+  current = null;
+  next = null;
+  renderStage();
+  updateProgress();
+  setStatus("Exercise complete!", "live");
+  overlayMsg.textContent = "You played " + notesPlayed + " notes.";
+  overlay.classList.add("show");
+}
+
+// Shared by a real match and by Skip. Starts the green flash, then advances.
+function registerAdvance(detectedFreq, countIt) {
+  if (transitioning || finished || !current) return;
+  // re-arm state is set immediately (same rules as before)
+  lastMatchFreq = detectedFreq || 0;
+  lastMatchTime = performance.now();
+  minRmsSinceMatch = Infinity;
+  silenceStart = 0;
+  armed = false;
+  holdCount = 0;
+
+  if (countIt) { notesPlayed++; updateCounter(); }
+
+  transitioning = true;
+  curGroup.classList.add("flash");
+  setTimeout(() => {
+    transitioning = false;
+    curGroup.classList.remove("flash");
+    advanceTarget();
+  }, FLASH_MS);
+}
+
+function skipNote() {
+  if (finished || transitioning || !current) return;
+  registerAdvance(currentFreq(), false);
+}
+
+function restartExercise() { startExercise(); }
+
+/* ================================================================
+   AUDIO + MAIN LOOP
+   ================================================================ */
+async function startMic() {
+  clearError();
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error("This browser does not support microphone capture.");
+    }
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+    }
+    await audioCtx.resume();
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    });
+
+    const source = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 4096;
+    analyser.smoothingTimeConstant = 0; // time-domain data isn't smoothed
+    source.connect(analyser);
+
+    buf = new Float32Array(analyser.fftSize);
+    sampleRate = audioCtx.sampleRate;
+    running = true;
+
+    setStatus("Listening — play the highlighted note.", "live");
+    $("startBtn").disabled = true;
+    if (rafId === null) rafId = requestAnimationFrame(loop);
+  } catch (err) {
+    running = false;
+    setStatus("Microphone unavailable.", "err");
+    let msg = "Could not access the microphone.";
+    if (err && err.name === "NotAllowedError") {
+      msg = "Microphone permission was denied. Allow mic access in your browser and try again.";
+    } else if (err && err.name === "NotFoundError") {
+      msg = "No microphone was found. Connect one and try again.";
+    } else if (err && err.message) {
+      msg = "Microphone error: " + err.message;
+    }
+    msg += " (Note: mic access requires https:// or localhost.)";
+    showError(msg);
+  }
+}
+
+function loop() {
+  rafId = requestAnimationFrame(loop);
+  if (!analyser || !buf) return;
+  analyser.getFloatTimeDomainData(buf);
+  const now = performance.now();
+  const res = detectPitch(buf, sampleRate);
+
+  updateReadoutUI(res);
+
+  if (!running || finished) return;
+
+  // ---- track silence (used both for re-arming and display) ----
+  if (res.rms < SILENCE) {
+    if (silenceStart === 0) silenceStart = now;
+  } else {
+    silenceStart = 0;
+  }
+
+  const targetFreq = currentFreq();
+  if (targetFreq <= 0) return;
+  if (transitioning) return; // don't match again during the flash
+
+  // ---- re-arm logic (prevents a sustained note from skipping repeats) ----
+  if (!armed) {
+    if (res.rms >= SILENCE) {
+      if (minRmsSinceMatch === Infinity) minRmsSinceMatch = res.rms;
+      else minRmsSinceMatch = Math.min(minRmsSinceMatch, res.rms);
+    }
+
+    // (a) player moved to a clearly different pitch
+    if (res.clarity > CLARITY && res.freq > 0 &&
+        Math.abs(centsBetween(res.freq, lastMatchFreq)) > REARM_CENTS) {
+      armed = true;
+      holdCount = 0;
+    }
+    // (b) fresh pluck detected
+    if (!armed && minRmsSinceMatch !== Infinity &&
+        res.rms > REARM_PLUCK_RATIO * minRmsSinceMatch &&
+        now - lastMatchTime > REARM_MIN_MS) {
+      armed = true;
+      holdCount = 0;
+    }
+    // (c) signal dropped to silence long enough
+    if (!armed && silenceStart && now - silenceStart > REARM_SILENCE_MS) {
+      armed = true;
+      holdCount = 0;
+    }
+  }
+
+  // ---- matching ----
+  if (armed && res.clarity > CLARITY && res.freq > 0) {
+    const cents = centsBetween(res.freq, targetFreq);
+    if (Math.abs(cents) < TOL_CENTS) {
+      holdCount++;
+      if (holdCount >= HOLD_FRAMES) registerAdvance(res.freq, true);
+    } else {
+      holdCount = 0;
+    }
+  } else {
+    holdCount = 0;
+  }
+}
+
+/* ================================================================
+   READOUT UI
+   ================================================================ */
+function updateReadoutUI(res) {
+  const hasPitch = res.clarity > CLARITY && res.freq > 0;
+  const targetFreq = currentFreq();
+  let cents = 0;
+  if (hasPitch && targetFreq > 0) cents = centsBetween(res.freq, targetFreq);
+
+  const clamped = Math.max(-50, Math.min(50, cents));
+  needle.style.left = (50 + clamped) + "%";
+  const inTune = hasPitch && targetFreq > 0 && Math.abs(cents) < TOL_CENTS;
+  needle.classList.toggle("in", inTune);
+  centsLabel.textContent = (hasPitch ? (cents >= 0 ? "+" : "") + cents.toFixed(0) : "0") + "¢";
+  centsLabel.classList.toggle("in", inTune);
+
+  // tolerance band on the meter (scaled from ±50 cents)
+  const half = (TOL_CENTS / 50) * 50;
+  meterTol.style.left = (50 - half) + "%";
+  meterTol.style.width = (half * 2) + "%";
+
+  // optional note names
+  if (namesChk.checked) {
+    const heard = hasPitch ? freqToNoteInfo(res.freq).name : "—";
+    const hz = hasPitch ? " (" + res.freq.toFixed(0) + " Hz)" : "";
+    const tn = targetFreq > 0 ? freqToNoteInfo(targetFreq).name : "—";
+    namesLine.textContent = "Heard: " + heard + hz + " · Target: " + tn;
+  }
+}
+
+/* ================================================================
+   SETTINGS
+   ================================================================ */
+function buildModeSelect() {
+  modeSel.innerHTML = "";
+  Object.keys(MODES).forEach((key) => {
+    const o = document.createElement("option");
+    o.value = key;
+    o.textContent = MODES[key];
+    modeSel.appendChild(o);
+  });
+  modeSel.value = mode;
+}
+
+function applyRandomFields() {
+  const isRandom = mode === "random";
+  fretField.style.display = isRandom ? "" : "none";
+  stringsField.style.display = isRandom ? "" : "none";
+}
+
+function applyTheme(t) {
+  if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  else document.documentElement.removeAttribute("data-theme");
+}
+
+function readFretRange() {
+  const parts = fretSel.value.split("-").map(Number);
+  if (Number.isFinite(parts[0])) fretMin = parts[0];
+  if (Number.isFinite(parts[1])) fretMax = parts[1];
+}
+
+/* ================================================================
+   CUSTOM TAB IMPORT
+   ----------------------------------------------------------------
+   Accepts either:
+     • ASCII tab text  — "e|--0--3--|", six lines, high e on top
+     • JSON            — {"name":"...","notes":[[5,0],[5,3]]}
+                         or a bare array [[5,0],[5,3]]
+   Both normalise to an array of [stringIndex, fret] pairs, where
+   stringIndex 0 = high e … 5 = low E.
+   ================================================================ */
+function parseAsciiTab(text) {
+  const lines = text.split(/\r?\n/).filter((l) => l.includes("|"));
+  if (!lines.length) return null;
+
+  const bars = lines.map((l) => l.indexOf("|"));
+  const labels = lines.map((l, i) => l.slice(0, bars[i]).trim());
+  const bodies = lines.map((l, i) => {
+    let b = l.slice(bars[i] + 1);
+    const last = b.lastIndexOf("|");
+    if (last !== -1) b = b.slice(0, last);
+    return b;
+  });
+
+  // Map each line to a string row. Six lines → top is high e.
+  let map;
+  if (bodies.length === 6) {
+    map = [0, 1, 2, 3, 4, 5];
+  } else {
+    map = labels.map((lab) => {
+      let idx = STRINGS.findIndex((s) => s.name === lab); // case-sensitive: 'e' vs 'E'
+      if (idx < 0) idx = STRINGS.findIndex((s) => s.name.toUpperCase() === lab.toUpperCase());
+      return idx;
+    });
+    if (map.some((x) => x < 0)) map = bodies.map((_, i) => i);
+  }
+
+  const notes = [];
+  bodies.forEach((body, row) => {
+    const si = map[row];
+    if (si < 0 || si > 5) return;
+    let i = 0;
+    while (i < body.length) {
+      if (/[0-9]/.test(body[i])) {
+        let j = i, num = "";
+        while (j < body.length && /[0-9]/.test(body[j])) { num += body[j]; j++; }
+        notes.push({ pos: i, s: si, f: parseInt(num, 10) });
+        i = j;
+      } else {
+        i++;
+      }
+    }
+  });
+
+  if (!notes.length) return null;
+  notes.sort((a, b) => a.pos - b.pos || a.s - b.s);
+  return notes.map((n) => [n.s, n.f]);
+}
+
+function parseCustomJSON(text) {
+  let data;
+  try { data = JSON.parse(text); } catch (e) { return null; }
+
+  let raw = null, name = null;
+  if (Array.isArray(data)) {
+    raw = data;
+  } else if (data && Array.isArray(data.notes)) {
+    raw = data.notes;
+    name = typeof data.name === "string" ? data.name : null;
+  }
+  if (!raw) return null;
+
+  const notes = [];
+  for (const n of raw) {
+    let s, f;
+    if (Array.isArray(n)) { s = n[0]; f = n[1]; }
+    else if (n && typeof n === "object") { s = n.string ?? n.s ?? n.stringIndex; f = n.fret ?? n.f; }
+    if (Number.isFinite(s) && Number.isFinite(f) && s >= 0 && s <= 5 && f >= 0) {
+      notes.push([s | 0, f | 0]);
+    }
+  }
+  return notes.length ? { notes, name } : null;
+}
+
+function parseCustomText(text, fallbackName) {
+  const trimmed = (text || "").trim();
+  if (!trimmed) return null;
+  if (trimmed[0] === "{" || trimmed[0] === "[") {
+    const j = parseCustomJSON(trimmed);
+    if (j) return { notes: j.notes, name: fallbackName || j.name || "Custom tab" };
+  }
+  const ascii = parseAsciiTab(text);
+  if (ascii) return { notes: ascii, name: fallbackName || "Custom tab" };
+  return null;
+}
+
+function showCustomError(msg) { customError.textContent = msg; customError.classList.add("show"); }
+function clearCustomError() { customError.textContent = ""; customError.classList.remove("show"); }
+
+function loadCustom(text, name) {
+  clearCustomError();
+  const parsed = parseCustomText(text, name);
+  if (!parsed || !parsed.notes.length) {
+    showCustomError("Couldn't find any notes. Use six ASCII tab lines (e|--0--3--|) or JSON like {\"notes\":[[5,0],[5,3]]}.");
+    return;
+  }
+  customNotes = parsed.notes;
+  customName = parsed.name || "Custom tab";
+
+  // add / update the "custom" entry in the exercise dropdown
+  let opt = modeSel.querySelector('option[value="custom"]');
+  if (!opt) {
+    opt = document.createElement("option");
+    opt.value = "custom";
+    modeSel.appendChild(opt);
+  }
+  opt.textContent = "Custom: " + customName + " (" + customNotes.length + " notes)";
+
+  modeSel.value = "custom";
+  mode = "custom";
+  applyRandomFields();
+  startExercise();
+  setStatus("Custom tab loaded — " + customNotes.length + " notes.", running ? "live" : "");
+  customCard.open = false;
+}
+
+const EXAMPLE_TAB =
+  "e|--0--3--5--3--0--|\n" +
+  "B|------------------|\n" +
+  "G|------------------|\n" +
+  "D|------------------|\n" +
+  "A|------------------|\n" +
+  "E|--3--5--6---------|";
+
+/* ================================================================
+   EVENT WIRING
+   ================================================================ */
+modeSel.addEventListener("change", () => {
+  mode = modeSel.value;
+  applyRandomFields();
+  startExercise();
+  setStatus(
+    running ? "Listening — play the highlighted note." : "Microphone off — press “Start mic”.",
+    running ? "live" : ""
+  );
+});
+
+fretSel.addEventListener("change", () => { readFretRange(); if (mode === "random") startExercise(); });
+stringsSel.addEventListener("change", () => { stringOpt = stringsSel.value; if (mode === "random") startExercise(); });
+
+namesChk.addEventListener("change", () => {
+  namesLine.classList.toggle("hidden", !namesChk.checked);
+  if (!namesChk.checked) namesLine.textContent = "";
+});
+
+// ---- theme ----
+const THEME_KEY = "tab-trainer-theme";
+try { themeSel.value = localStorage.getItem(THEME_KEY) || "auto"; } catch (e) {}
+applyTheme(themeSel.value);
+themeSel.addEventListener("change", () => {
+  applyTheme(themeSel.value);
+  try { localStorage.setItem(THEME_KEY, themeSel.value); } catch (e) {}
+});
+
+// ---- custom tab import ----
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    customInput.value = String(reader.result || "");
+    loadCustom(customInput.value, file.name.replace(/\.[^.]+$/, ""));
+  };
+  reader.onerror = () => showCustomError("Could not read that file.");
+  reader.readAsText(file);
+  fileInput.value = ""; // allow choosing the same file again
+});
+$("loadCustomBtn").addEventListener("click", () => loadCustom(customInput.value, null));
+$("exampleBtn").addEventListener("click", () => { customInput.value = EXAMPLE_TAB; clearCustomError(); });
+
+$("startBtn").addEventListener("click", startMic);
+$("skipBtn").addEventListener("click", skipNote);
+$("restartBtn").addEventListener("click", restartExercise);
+$("againBtn").addEventListener("click", () => { overlay.classList.remove("show"); startExercise(); });
+$("closeBtn").addEventListener("click", () => overlay.classList.remove("show"));
+
+/* ================================================================
+   INIT
+   ================================================================ */
+buildStrings();
+buildModeSelect();
+readFretRange();
+stringOpt = stringsSel.value;
+applyRandomFields();
+startExercise();
+setStatus("Microphone off — press “Start mic”. You can also use “Skip note” to preview.");
+
+window.addEventListener("resize", () => { /* SVG scales with the card */ });
+</script>
+</body>
+</html>

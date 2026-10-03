@@ -1,0 +1,40 @@
+# Deploy the static site to GitHub Pages.
+#
+# This is OPTIONAL. If you use Settings → Pages → "Deploy from a branch"
+# (main / root), GitHub serves the repo directly and this workflow is ignored.
+# Use GitHub Actions as the Pages source if you prefer CI-based deploys.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Keep .git out of the published artifact.
+      - name: Clean
+        run: rm -rf .git
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
